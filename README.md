@@ -13,6 +13,8 @@ git clone https://github.com/fl4vus/ta-152-r1
 cd ta-152-r1/
 make
 ```
+### Documentation
+Specifications: [TA-152-R0-SPEC]((https://github.com/fl4vus/ta-152-r1/tree/main/documentation/ta-152-r1-spec.pdf)
 
 ### Build
 Language: ISO C11  
