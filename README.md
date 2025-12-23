@@ -9,7 +9,7 @@ The project currently has **EXPERIMENTAL** stability, and is not suitable for pr
 
 ### Build Instructions
 ```
-git clone https://github.com/fl4vus/ta-152-r1/edit/main/README.md
+git clone https://github.com/fl4vus/ta-152-r1
 cd ta-152-r1/
 make
 ```
