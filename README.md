@@ -7,4 +7,11 @@ TA-152-R1 is a unique implentation of my [TA-152-R0](https://github.com/fl4vus/t
 TA-152-R1 passes a complete functional regression test suite _(test.sh)_, including determinism, IV-based non-determinism, key sensitivity, binary safety, and wrong-key robustness.
 The project currently has **EXPERIMENTAL** stability, and is not suitable for production cryptography.
 
+### Build
+Language: ISO C11  
+Compiler: GCC / Clang  
+Platform: Linux / Unix  
+Build system: Make  
+Dependencies: libc only  
+
 _AUTHOR: Riyan Dahiya_
