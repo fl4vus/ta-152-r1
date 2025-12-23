@@ -14,4 +14,11 @@ Platform: Linux / Unix
 Build system: Make  
 Dependencies: libc only  
 
+### Instructions to Build
+```
+git clone https://github.com/fl4vus/ta-152-r1/edit/main/README.md
+cd ta-152-r1/
+make
+```
+
 _AUTHOR: Riyan Dahiya_
