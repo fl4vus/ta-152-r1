@@ -19,6 +19,6 @@ Language: ISO C11
 Compiler: GCC / Clang  
 Platform: Linux / Unix  
 Build system: Make  
-Dependencies: libc only  
+Dependencies: gcc, glibc, make  
 
 _AUTHOR: Riyan Dahiya_
