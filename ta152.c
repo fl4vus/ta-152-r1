@@ -155,8 +155,7 @@ static void init_matrix(uint8_t base_mx[MATRIX_LEN]) {
     }
 }
 
-static void ta152_round(uint8_t key, uint8_t *base_mx, uint8_t *inverse_mx) {
-    
+static void ta152_round(uint8_t key, uint8_t *base_mx, uint8_t *inverse_mx) {    
     int chunk_size;
     if (key == 0 || key == 1)
         chunk_size = 2;
@@ -289,10 +288,14 @@ int ta152_encrypt(const char *in_path, const char *key_file, int status_b) {
         S = key_mx[0] ^ hdr.iv[0] ^ hdr.iv[1];
         counter = (uint32_t) 0;
     }
-
+    
     uint8_t inbuf[4096];
     uint8_t outbuf[4096];
     size_t outpos = 0;
+    
+    uint8_t mix_byte = key_mx[0];   
+    if (hdr.status == STATUS_ON)
+        mix_byte = key_mx[0] ^ hdr.iv[15];
 
     while (1) {
         ssize_t bytes_read = read(in_file, inbuf, sizeof inbuf);
@@ -311,12 +314,14 @@ int ta152_encrypt(const char *in_path, const char *key_file, int status_b) {
         }
 
         for (ssize_t i = 0; i < bytes_read; i++) {
+            uint8_t cipher_buffer = inbuf[i] ^ mix_byte;
             uint8_t cipher =
-                ta152_encrypt_chunk(inbuf[i], key_mx[keypos], base_mx, inverse_mx);
+                ta152_encrypt_chunk(cipher_buffer, key_mx[keypos], base_mx, inverse_mx);
             if (status_b == STATUS_ON)
                 cipher = cipher ^ S;
 
             outbuf[outpos++] = cipher;
+            mix_byte = cipher;
 
             if (status_b == STATUS_ON) {
                 S = keystream_update(S, key_mx[keypos], counter++);
@@ -337,7 +342,7 @@ int ta152_encrypt(const char *in_path, const char *key_file, int status_b) {
         }
     }
 
-// flush tail
+    // flush tail
     if (outpos > 0) {
         if (write_all(out_file, outbuf, outpos) < 0) {
             explicit_bzero(key_mx, KEY_SIZE);
@@ -477,6 +482,10 @@ int ta152_decrypt(const char *in_path, const char *key_file) {
     uint8_t outbuf[4096];
     size_t outpos = 0;
 
+    uint8_t mix_byte = key_mx[0];   
+    if (hdr.status == STATUS_ON)
+        mix_byte = key_mx[0] ^ hdr.iv[15];
+
     while (remaining_for_read > 0) {
         ssize_t to_read = min_ssize(remaining_for_read, sizeof(inbuf));
         ssize_t bytes_read = read(in_file, inbuf, to_read) ;
@@ -505,7 +514,10 @@ int ta152_decrypt(const char *in_path, const char *key_file) {
             uint8_t plain =
                 ta152_decrypt_chunk(plain_buffer, key_mx[keypos], base_mx, inverse_mx);
             
+            plain = plain ^ mix_byte;
+
             outbuf[outpos++] = plain;
+            mix_byte = inbuf[i];
 
             if (hdr.status == STATUS_ON) {
                 S = keystream_update(S, key_mx[keypos], counter++);
@@ -526,7 +538,7 @@ int ta152_decrypt(const char *in_path, const char *key_file) {
         }
     }
 
-// flush tail
+    // flush tail
     if (outpos > 0) {
         if (write_all(out_file, outbuf, outpos) < 0) {
             explicit_bzero(key_mx, KEY_SIZE);
