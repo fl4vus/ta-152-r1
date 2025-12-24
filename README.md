@@ -14,6 +14,13 @@ cd ta-152-r1/
 make
 ```
 
+### Usage
+```
+./ta152 encrypt <input_file> <keyfile> -iv # Encryption w/ IV
+./ta152 encrypt <input_file> <keyfile>     # Encryption w/o IV
+./ta152 decrypt <input_file> <keyfile>     # Decryption
+```
+
 ### Build
 Language: ISO C11  
 Compiler: GCC / Clang  
