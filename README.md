@@ -1,5 +1,5 @@
 # ta-152-r1
-![MASCOT](https://raw.githubusercontent.com/fl4vus/ta-152-r1/main/r1-mascot.png)
+![MASCOT](https://raw.githubusercontent.com/fl4vus/ta-152-r1/main/r1_mascot.png)
 
 ## TA-152-R1 Cipher (Original Implementation)
 TA-152-R1 is an improvement over my [TA-152-R0](https://github.com/fl4vus/ta-152-r0 "TA-152-R0") cipher, and implements IV for better key non-determinism.
