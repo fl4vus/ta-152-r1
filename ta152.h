@@ -26,6 +26,7 @@
 #define MATRIX_LEN 256
 #define KEY_SIZE 16
 #define IV_SIZE 16
+#define TA152_HEADER_SIZE 32
 
 #define MAGIC_NUMBER 0x54313532
 #define VERSION 1

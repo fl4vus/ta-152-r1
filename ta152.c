@@ -9,22 +9,15 @@
 #include <sys/stat.h>
 #include "ta152.h"
 
-struct __attribute__((packed)) Header {
-    uint32_t magic_number;
-    uint8_t version_number;
+struct Header {
+    uint8_t magic_number[4];
+    uint8_t version;
     uint8_t status;
     uint8_t iv[IV_SIZE];
     uint32_t offset_a;
     uint16_t offset_b;
     uint32_t file_size;
 };
-
-int get_iv(uint8_t *iv) {
-    if (getrandom(iv, IV_SIZE, 0) != IV_SIZE) {
-        return ERR_UNINITIALIZED_IV;
-    }
-    return 1;
-}
 
 static inline uint8_t keystream_update(uint8_t S, uint8_t key_byte, uint32_t counter) {
     return (uint8_t)((S * 131 + key_byte + (counter & 0xFF)) & 0xFF);
@@ -102,9 +95,37 @@ static inline void swap_mx(uint8_t *base_mx, uint8_t *inverse_mx, int a, int b) 
     inverse_mx[y] = a;
 }
 
+// little endian wrappers
+static void le_write_u32(uint8_t *p, uint32_t v) {
+    *(p + 0) = (uint8_t)(v);
+    *(p + 1) = (uint8_t)(v >> 8); 
+    *(p + 2) = (uint8_t)(v >> 16);
+    *(p + 3) = (uint8_t)(v >> 24);  
+}
+
+static uint32_t le_read_u32(uint8_t *p) {
+    return ((uint32_t)(p[0]) | (uint32_t)(p[1] << 8)| (uint32_t)(p[2] << 16) | (uint32_t)(p[3] << 24));
+}
+
+static void le_write_u16(uint8_t *p, uint16_t v) {
+    *(p + 0) = (uint8_t)(v);
+    *(p + 1) = (uint8_t)(v >> 8);  
+}
+
+static uint16_t le_read_u16(uint8_t *p) {
+    return ((uint16_t)(p[0]) | (uint16_t)(p[1] << 8));
+}
+
+int get_iv(uint8_t *iv) {
+    if (getrandom(iv, IV_SIZE, 0) != IV_SIZE) {
+        return ERR_UNINITIALIZED_IV;
+    }
+    return 1;
+}
+
+// initialize header
 int init_header(struct Header *hdr, int fd, int status) {
-    hdr->magic_number = MAGIC_NUMBER;
-    hdr->version_number = VERSION;
+    hdr->version = VERSION;
     if (status == 1) {
         hdr->status = STATUS_ON;
     }
@@ -114,6 +135,7 @@ int init_header(struct Header *hdr, int fd, int status) {
     else {
         return ERR_UNDEFINED_STATUS;
     }
+
     if (status == STATUS_OFF) {
         memset(hdr->iv, 0, IV_SIZE);
     }
@@ -121,6 +143,7 @@ int init_header(struct Header *hdr, int fd, int status) {
         if (get_iv(hdr->iv) < 0)
             return ERR_UNINITIALIZED_IV;
     }
+
     hdr->offset_a = 0;
     hdr->offset_b = 65535;
 
@@ -132,15 +155,54 @@ int init_header(struct Header *hdr, int fd, int status) {
     return 0;
 }
 
-int read_header(struct Header *hdr, int fd) {
-    ssize_t r = fd_read(fd, hdr, sizeof *hdr);
-    if (r != sizeof *hdr)
-        return ERR_NO_READ;
+// write header
+static void write_header(uint8_t out[TA152_HEADER_SIZE], const struct Header *hdr) {
+    memset(out, 0, TA152_HEADER_SIZE);
 
-    if (hdr->magic_number != MAGIC_NUMBER)
+    // magic
+    out[0] = 'T';
+    out[1] = '1';
+    out[2] = '5';
+    out[3] = '2';
+
+    // version
+    out[4] = hdr->version;
+
+    // status
+    out[5] = hdr->status;
+
+    // iv
+    memcpy(out + 6, hdr->iv, IV_SIZE);
+
+    // offset
+    le_write_u32(out + 22, hdr->offset_a);
+    le_write_u16(out + 26, hdr->offset_b);
+
+    // filesize
+    le_write_u32(out + 28, hdr->file_size);
+}
+
+static int read_header(struct Header *hdr, uint8_t in[TA152_HEADER_SIZE])
+{
+    memcpy(hdr->magic_number, in + 0, 4);
+    
+    hdr->version = in[4];
+    hdr->status = in[5];
+
+    memcpy(hdr->iv, in + 6, IV_SIZE);
+
+    hdr->offset_a  = le_read_u32(in + 22);
+    hdr->offset_b  = le_read_u16(in + 26);
+    hdr->file_size = le_read_u32(in + 28);
+
+    return 0;
+}
+
+int verify_header(struct Header *hdr) {
+    if (!(hdr->magic_number[0] == 'T' && hdr->magic_number[1] == '1' && hdr->magic_number[2] == '5' && hdr->magic_number[3] == '2'))
         return ERR_HEADER_INVALID;
 
-    if (hdr->version_number > VERSION || hdr->version_number < 1)
+    if (hdr->version > VERSION || hdr->version < 1)
         return ERR_UNSUPPORTED_VERSION;
 
     if (!(hdr->status == STATUS_ON || hdr->status == STATUS_OFF))
@@ -161,8 +223,6 @@ static void ta152_round(uint8_t key, uint8_t *base_mx, uint8_t *inverse_mx) {
         chunk_size = 2;
     else
         chunk_size = (int)key;
-
-//    uint8_t x, y;
 
     int offset = 0;
     while (offset + chunk_size <= MATRIX_LEN) {
@@ -272,7 +332,9 @@ int ta152_encrypt(const char *in_path, const char *key_file, int status_b) {
         return ERR_CANNOT_INIT_HEADER;
     }
 
-    if (write_all(out_file, &hdr, sizeof(hdr)) < 0) {
+    uint8_t hdr_bytes[TA152_HEADER_SIZE];
+    write_header(hdr_bytes, &hdr);
+    if (write_all(out_file, hdr_bytes, TA152_HEADER_SIZE) < 0) {
         fd_close(in_file);
         fd_close(out_file);
         free(out_path);
@@ -393,7 +455,6 @@ int ta152_decrypt(const char *in_path, const char *key_file) {
     }
     int keypos = 0;
     
-
     uint8_t base_mx[MATRIX_LEN];
     uint8_t inverse_mx[MATRIX_LEN];
 
@@ -409,13 +470,24 @@ int ta152_decrypt(const char *in_path, const char *key_file) {
     }
 
     struct Header hdr = {0};
-    int header_read = read_header(&hdr, in_file);
-    if (header_read < 0) {
+    uint8_t hdr_bytes[TA152_HEADER_SIZE];
+
+    if (fd_read(in_file, hdr_bytes, TA152_HEADER_SIZE) != TA152_HEADER_SIZE) {
         free(out_path);
         explicit_bzero(key_mx, KEY_SIZE); 
         free(key_mx);
         fd_close(in_file);
-        return header_read;
+        return ERR_NO_READ;
+    }
+    read_header(&hdr, hdr_bytes);
+    int header_checker;
+
+    if ((header_checker = verify_header(&hdr)) < 0) {
+        free(out_path);
+        explicit_bzero(key_mx, KEY_SIZE); 
+        free(key_mx);
+        fd_close(in_file);
+        return header_checker;
     }
 
     uint32_t remaining_for_read = hdr.file_size;
@@ -429,7 +501,7 @@ int ta152_decrypt(const char *in_path, const char *key_file) {
         return ERR_CANNOT_STAT_SIZE;
     }
 
-    long long payload_size = in_file_size - (long long) sizeof (struct Header);
+    long long payload_size = in_file_size - TA152_HEADER_SIZE;
     if (payload_size != hdr.file_size) {
         free(out_path);
         explicit_bzero(key_mx, KEY_SIZE); 
