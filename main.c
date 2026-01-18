@@ -7,60 +7,48 @@ static void usage (const char *prog) {
     fprintf(stderr, "Usage:\nENCRYPTION: %s encrypt <input_file> <keyfile>\nDECRYPTION: %s decrypt <input_file> <keyfile>\nENCRYPTION WITH IV: %s encrypt <input_file> <keyfile> -iv\n", prog, prog, prog);
 }
 
+// ta152.h defines return values for error codes
 static void print_error(int error_code) {
     switch (error_code) {
         case ERR_OPEN_FAILED:
             fprintf(stderr, "Error: failed to open file\n");
             break;
-
         case ERR_NO_READ:
             fprintf(stderr, "Error: read failure\n");
             break;
-
         case ERR_NO_WRITE:
             fprintf(stderr, "Error: write failure\n");
             break;
-
         case ERR_CLOSE_FAILED:
             fprintf(stderr, "Error: close failure\n");
             break;
-
         case ERR_CANNOT_STAT_SIZE:
             fprintf(stderr, "Error: cannot determine file size\n");
             break;
-
         case ERR_NO_PATH_OUT:
             fprintf(stderr, "Error: output path error\n");
             break;
-
         case ERR_INVALID_KEY_SIZE:
             fprintf(stderr, "Error: invalid key size\n");
             break;
-
         case ERR_KEY_NOT_LOADED:
             fprintf(stderr, "Error: key not loaded\n");
             break;
-
         case ERR_UNDEFINED_STATUS:
             fprintf(stderr, "Error: undefined status value\n");
             break;
-
         case ERR_UNINITIALIZED_IV:
             fprintf(stderr, "Error: IV not initialized\n");
             break;
-
         case ERR_CANNOT_INIT_HEADER:
             fprintf(stderr, "Error: cannot initialize header\n");
             break;
-
         case ERR_HEADER_INVALID:
             fprintf(stderr, "Error: invalid or corrupted header\n");
             break;
-
         case ERR_UNSUPPORTED_VERSION:
             fprintf(stderr, "Error: unsupported file version\n");
             break;
-
         default:
             fprintf(stderr, "Error: unknown error (%d)\n", error_code);
             break;
