@@ -55,8 +55,8 @@ static void print_error(int error_code) {
     }
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+    
     if (argc > 5 || argc < 4) {
         usage(argv[0]);
         return EXIT_FAILURE;
