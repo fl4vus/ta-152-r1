@@ -145,7 +145,7 @@ int init_header(struct Header *hdr, int fd, int status) {
     }
 
     hdr->offset_a = 0;
-    hdr->offset_b = 65535;
+    hdr->offset_b = 0;
 
     long long sz = filesize_fd(fd);
     if (sz < 0 || sz > UINT32_MAX)
