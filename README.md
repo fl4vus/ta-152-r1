@@ -29,7 +29,7 @@ Build system: Make
 Dependencies: libc / glibc
 
 ### Documentation
-Specifications: [TA-152-R1-SPEC](https://github.com/fl4vus/ta-152-r1/tree/main/documentation/r1_spec.pdf)
+Specifications: [TA-152-R1-SPEC](https://github.com/fl4vus/ta-152-r1/tree/main/documentation/r1_spec.md)
 
 
 _AUTHOR: Riyan Dahiya_
