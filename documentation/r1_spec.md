@@ -117,34 +117,32 @@ Hence, strict ordering symmetry between encryption and decryption is required.
 For each plaintext byte **P**:
 
 1. A feedback-mixed input is computed:  
-```
+`
 P' = P XOR mix_byte
-```
+`
 
 2. Update permutation using the current key byte.
 
 3. Substitute:  
-```
+`
 C = base_mx[P']
-```
+`
 
 4. If IV-based keystream is enabled:  
-```
+`
 C = C XOR S
-```
+`
 
 5. Output **C**.
 
 6. Update feedback state:  
-```
+`
 mix_byte = C
-```
+`
 
 7. If IV-based keystream is enabled, update keystream:  
-```
-S = (S * 131 + key_byte + (counter & 0xFF)) mod 256
-counter++
-```
+`S = (S * 131 + key_byte + (counter & 0xFF)) mod 256`
+`counter++`
 
 8. Advance key index modulo 16.
 
@@ -163,27 +161,26 @@ C' = C XOR S
 2. Update permutation using the current key byte.
 
 3. Substitute:  
-```
+`
 P' = inverse_mx[C']
-```
+`
 
 4. Recover plaintext:  
-```
+`
 P = P' XOR mix_byte
-```
+`
 
 5. Output **P**.
 
 6. Update feedback state:  
-```
+`
 mix_byte = C
-```
+`
 
 7. If IV-based keystream is enabled, update keystream:  
-```
-S = (S * 131 + key_byte + (counter & 0xFF)) mod 256
-counter++
-```
+`S = (S * 131 + key_byte + (counter & 0xFF)) mod 256`
+`counter++`
+`
 
 8. Advance key index modulo 16.
 
@@ -200,20 +197,20 @@ IV usage is controlled by the status byte in the header.
 - **Used for:** ciphertext and keystream initialization
 
 **Keystream initialization:**
-```
+`
 S0 = key[0] XOR iv[0] XOR iv[1]
 counter = 0
-```
+`
 **Ciphertext feedback initialization:**
-```
+`
 mix_byte = key[0] XOR iv[15]
-```
+`
 
 When IV mode is disabled, the keystream stage is skipped, and the IV is zeroed and
 unused. Ciphertext feedback is seeded as:
-```
+`
 mix_byte = key[0]
-```
+`
 
 ## 6. File Format
 
