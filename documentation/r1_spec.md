@@ -195,13 +195,12 @@ IV usage is controlled by the status byte in the header.
 - **IV Generation:** OS entropy (`getrandom`)  
 - **Used for:** ciphertext and keystream initialization
 
-**Keystream initialization:**
+**Keystream initialization:**  
 `
-S0 = key[0] XOR iv[0] XOR iv[1]
-counter = 0
-`  
+S0 = key[0] XOR iv[0] XOR iv[1]`  
+`counter = 0`  
 
-**Ciphertext feedback initialization:**
+**Ciphertext feedback initialization:**  
 `
 mix_byte = key[0] XOR iv[15]
 `
