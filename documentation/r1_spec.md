@@ -141,7 +141,7 @@ mix_byte = C
 `
 
 7. If IV-based keystream is enabled, update keystream:  
-`S = (S * 131 + key_byte + (counter & 0xFF)) mod 256`
+`S = (S * 131 + key_byte + (counter & 0xFF)) mod 256`  
 `counter++`
 
 8. Advance key index modulo 16.
@@ -154,9 +154,9 @@ ciphertext bytes, increasing diffusion across the stream.
 For each ciphertext byte **C**:
 
 1. If IV-based keystream is enabled:  
-```
+`
 C' = C XOR S
-```
+`
 
 2. Update permutation using the current key byte.
 
@@ -178,9 +178,8 @@ mix_byte = C
 `
 
 7. If IV-based keystream is enabled, update keystream:  
-`S = (S * 131 + key_byte + (counter & 0xFF)) mod 256`
+`S = (S * 131 + key_byte + (counter & 0xFF)) mod 256`  
 `counter++`
-`
 
 8. Advance key index modulo 16.
 
