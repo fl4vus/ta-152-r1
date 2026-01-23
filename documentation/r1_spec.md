@@ -154,28 +154,20 @@ ciphertext bytes, increasing diffusion across the stream.
 For each ciphertext byte **C**:
 
 1. If IV-based keystream is enabled:  
-`
-C' = C XOR S
-`
+`C' = C XOR S`
 
 2. Update permutation using the current key byte.
 
 3. Substitute:  
-`
-P' = inverse_mx[C']
-`
+`P' = inverse_mx[C']`
 
 4. Recover plaintext:  
-`
-P = P' XOR mix_byte
-`
+`P = P' XOR mix_byte`
 
 5. Output **P**.
 
 6. Update feedback state:  
-`
-mix_byte = C
-`
+`mix_byte = C`
 
 7. If IV-based keystream is enabled, update keystream:  
 `S = (S * 131 + key_byte + (counter & 0xFF)) mod 256`  
@@ -196,20 +188,15 @@ IV usage is controlled by the status byte in the header.
 - **Used for:** ciphertext and keystream initialization
 
 **Keystream initialization:**  
-`
-S0 = key[0] XOR iv[0] XOR iv[1]`  
+`S0 = key[0] XOR iv[0] XOR iv[1]`  
 `counter = 0`  
 
 **Ciphertext feedback initialization:**  
-`
-mix_byte = key[0] XOR iv[15]
-`
+`mix_byte = key[0] XOR iv[15]`
 
 When IV mode is disabled, the keystream stage is skipped, and the IV is zeroed and
 unused. Ciphertext feedback is seeded as:
-`
-mix_byte = key[0]
-`
+`mix_byte = key[0]`
 
 ## 6. File Format
 
