@@ -199,7 +199,8 @@ IV usage is controlled by the status byte in the header.
 `
 S0 = key[0] XOR iv[0] XOR iv[1]
 counter = 0
-`
+`  
+
 **Ciphertext feedback initialization:**
 `
 mix_byte = key[0] XOR iv[15]
